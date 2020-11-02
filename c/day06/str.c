@@ -1,11 +1,14 @@
 #include <stdio.h>
 
+int mystrcpy(char dest[], char src[]);
+int mystrcat(char dest[], char src[]);
 int main(void)
 {
 	char str[] = "hello world";
 	char str2[11] = {'h', 'e', 'l', 'l', 'o', \
 	' ', 'w', 'o', 'r', 'l', 'd'}; // 不是字符串，普通数组
 	int i;
+	char str3[50] = "hhhhhhhhhhhhhhhhh";
 
 	printf("%ld\n", sizeof(str));
 
@@ -13,6 +16,12 @@ int main(void)
 	for (i = 0; str[i]; i++)
 		;
 	printf("长度:%d\n", i);
+
+	mystrcpy(str3, str);
+	printf("%s\n", str3);
+
+	mystrcat(str3, str);
+	printf("%s\n", str3);
 
 	return 0;
 }
