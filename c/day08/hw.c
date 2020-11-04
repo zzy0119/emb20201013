@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-char *mystrncpy(char *dest, char *src, int size);
-char *mystrcat(char *dest, char *src);
-int mystrcmp(char *s1, char *s2);
-char *mystrstr(char *s1, char *s2);
+char *mystrncpy(char *dest, const char *src, int size);
+char *mystrcat(char *dest, const char *src);
+int mystrcmp(const char *s1, const char *s2);
+char *mystrstr(const char *s1, const char *s2);
 int main(void)
 {
 	char d[100] = "hello";
@@ -22,7 +22,7 @@ int main(void)
 }
 
 // strcpy(3)
-char *mystrcpy(char *dest, char *src)
+char *mystrcpy(char *dest, const char *src)
 {
 	char *ret = dest;
 	int i;
@@ -41,7 +41,7 @@ char *mystrcpy(char *dest, char *src)
 	return ret;
 }
 
-char *mystrncpy(char *dest, char *src, int size)
+char *mystrncpy(char *dest, const char *src, int size)
 {
 	int i;
 
@@ -53,7 +53,7 @@ char *mystrncpy(char *dest, char *src, int size)
 }
 
 // 字符串拼接
-char *mystrcat(char *dest, char *src)
+char *mystrcat(char *dest, const char *src)
 {
 	char *ret = dest; // char *ret; ret = dest;
 
@@ -64,7 +64,7 @@ char *mystrcat(char *dest, char *src)
 	return ret;
 }
 
-int mystrcmp(char *s1, char *s2)
+int mystrcmp(const char *s1, const char *s2)
 {
 	while (*s1 == *s2) {
 		if (*s1 == '\0')
@@ -76,7 +76,7 @@ int mystrcmp(char *s1, char *s2)
 }
 
 // s1中第一次出现s2首地址
-char *mystrstr(char *s1, char *s2)
+char *mystrstr(const char *s1, const char *s2)
 {
 	char *s1_equal, *s2_equal;		
 
