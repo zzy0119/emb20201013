@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static char *start;
-
 char *mystrtok(char *p, const char *delim);
 int main(int argc, char *argv[])
 {
@@ -24,28 +22,32 @@ int main(int argc, char *argv[])
 
 char *mystrtok(char *p, const char *delim)
 {
-	// static char *start = p;	 ???????
+	static char *start = NULL;
 	char *ret, *ptr;
 
 	if (p != NULL)
 		start = p;
+	if (*start == '\0')
+		return NULL;
 
 	while (strchr(delim, *start) != NULL) {
 		// 第一个元素就是分割符
 		start++;
 	}
 	ptr = start;
+
 	while (*start) {
 		ret = strchr(delim, *start);	
 		if (ret != NULL) {
 			*start = '\0';
 			start ++;
-			return ptr;
+			break;
 		}
 		start ++;
 	}
+	// *start--->'\0'
 
-	return NULL;
+	return ptr;
 }
 
 
