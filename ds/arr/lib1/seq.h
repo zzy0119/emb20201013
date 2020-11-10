@@ -11,9 +11,14 @@ typedef struct {
 	int size;
 }manage_sys_t;
 
+typedef void (*pri_t)(const void *data);
+
 // manage_sys_t *manage_sys_init(int size);
 int manage_sys_init(manage_sys_t **m, int size);
 
+int manage_sys_add(manage_sys_t *m, const void *data);
+
+void manage_sys_traval(const manage_sys_t *m, pri_t pri);
 
 #endif
 
