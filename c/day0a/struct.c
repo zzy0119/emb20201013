@@ -5,7 +5,7 @@ struct student_st {
 	char *name;
 	int age;
 	float score;
-};
+}g_s1, *g_p1;
 
 int main(void)
 {
