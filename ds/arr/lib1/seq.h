@@ -12,7 +12,7 @@ typedef struct {
 }manage_sys_t;
 
 typedef void (*pri_t)(const void *data);
-int (*cmp_t)(const void *data, const void *key);
+typedef int (*cmp_t)(const void *data, const void *key);
 
 // manage_sys_t *manage_sys_init(int size);
 /*
