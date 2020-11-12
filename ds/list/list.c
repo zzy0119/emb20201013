@@ -66,3 +66,41 @@ void list_destroy(head_t *h)
 	h = NULL;
 }
 
+static struct node_st *find_pre(const head_t *h, const void *key, cmp_t cmp)
+{
+	struct node_st *pre, *n;
+
+	pre = (struct node_st *)&h->node;
+	n = pre->next;
+	while (n != &h->node) {
+		if (!cmp(n->data, key))
+			return pre;
+		pre = n;
+		n = n->next;
+	}
+	return NULL;
+}
+
+int list_delete(head_t *h, const void *key, cmp_t cmp)
+{
+	struct node_st *pre, *del;
+
+	pre = find_pre(h, key, cmp);
+	if (NULL == pre)
+		return -1;
+	del = pre->next;
+	pre->next = del->next;
+	del->next = NULL;
+	free(del->data);
+	free(del);
+
+	return 0;
+}
+
+void *list_search(const head_t *h, const void *key, cmp_t cmp)
+{
+	struct node_st *pre = find_pre(h, key, cmp);
+	if (NULL == pre)
+		return NULL;
+	return pre->next->data;
+}

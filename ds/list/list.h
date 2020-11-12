@@ -16,10 +16,15 @@ typedef struct {
 }head_t;
 
 typedef void (*print_t)(const void *data);
+typedef int (*cmp_t)(const void *data, const void *key);
 
 int head_init(head_t **h, int size);
 
 int list_insert(head_t *h, const void *data, int way);
+
+int list_delete(head_t *h, const void *key, cmp_t cmp);
+
+void *list_search(const head_t *h, const void *key, cmp_t cmp);
 
 void list_traval(const head_t *h, print_t pri);
 
