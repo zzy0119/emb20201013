@@ -14,7 +14,7 @@ struct list_head {
 static inline void INIT_LIST_HEAD(struct list_head *list)
 {
 	list->prev = list;
-	list->next = next;
+	list->next = list;
 }
 
 /*

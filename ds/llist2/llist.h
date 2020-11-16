@@ -5,9 +5,9 @@ enum {HEADINSERT, TAILINSERT};
 
 // 双向环链
 struct node_st {
-	void *data;
 	struct node_st *prev;
 	struct node_st *next;
+	char data[0];
 };
 
 typedef struct {
@@ -28,10 +28,6 @@ void llist_destroy(llisthead_t *h);
 int llist_delete(llisthead_t *h, const void *key, cmp_t cmp);
 
 void *llist_search(const llisthead_t *h, const void *key, cmp_t cmp);
-
-int llist_empty(const llisthead_t *h);
-
-int llist_fetch(llisthead_t *h, const void *key, cmp_t cmp, void *data);
 
 #endif
 

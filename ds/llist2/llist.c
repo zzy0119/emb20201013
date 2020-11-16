@@ -9,7 +9,6 @@ int llisthead_init(llisthead_t **h, int size)
 	if (NULL == *h)
 		return -1;
 	(*h)->size = size;
-	(*h)->node.data = NULL;
 	(*h)->node.prev = (*h)->node.next = &(*h)->node;
 
 	return 0;
@@ -27,14 +26,9 @@ int llist_insert(llisthead_t *h, const void *data, int way)
 {
 	struct node_st *new;
 
-	new = malloc(sizeof(struct node_st));
+	new = malloc(sizeof(struct node_st)+h->size);
 	if (NULL == new)
 		return -1;
-	new->data = malloc(h->size);
-	if (NULL == new->data) {
-		free(new);
-		return -1;
-	}
 	memcpy(new->data, data, h->size);
 
 	if (way == HEADINSERT) {
@@ -42,7 +36,6 @@ int llist_insert(llisthead_t *h, const void *data, int way)
 	} else if (way == TAILINSERT) {
 		_insert(new, h->node.prev, &h->node);
 	} else {
-		free(new->data);
 		free(new);
 		return -1;
 	}
@@ -69,7 +62,6 @@ void llist_destroy(llisthead_t *h)
 		h->node.next = cur->next;
 		cur->next->prev = &h->node;
 		cur->prev = cur->next = NULL;
-		free(cur->data);
 		free(cur);
 		cur = h->node.next;
 	}	
@@ -94,7 +86,6 @@ static void _delete(struct node_st *del)
 	del->next->prev = del->prev;
 
 	del->next = del->prev = NULL;
-	free(del->data);
 	free(del);
 }
 
@@ -121,22 +112,4 @@ void *llist_search(const llisthead_t *h, const void *key, cmp_t cmp)
 	return cur->data;
 }
 
-
-int llist_empty(const llisthead_t *h)
-{
-	return h->node.prev == &h->node && h->node.next == &h->node;
-}
-
-int llist_fetch(llisthead_t *h, const void *key, cmp_t cmp, void *data)
-{
-	struct node_st *cur;	
-
-	cur = find_node(h, key, cmp);
-	if (NULL == cur)
-		return -1;
-	memcpy(data, cur->data, h->size);
-	_delete(cur);
-
-	return 0;
-}
 
