@@ -1,7 +1,7 @@
 #ifndef __LSTATCK_H
 #define __LSTATCK_H
 
-#include "/home/emb1013/code20201013/emb20201013/ds/llist/llist.h"
+#include <llist.h>
 
 typedef llisthead_t lstack_t;
 
