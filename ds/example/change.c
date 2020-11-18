@@ -37,7 +37,7 @@ char *midToLast(const char *p)
 	queue_t *q;
 	int len;
 	char ch;
-	char *res;
+	char *res = NULL;
 	int i;
 
 	len = strlen(p);
