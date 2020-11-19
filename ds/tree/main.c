@@ -44,6 +44,31 @@ void tree_mid_traval(const struct node_st *root)
 	tree_mid_traval(root->right);
 }
 
+// destroy
+void tree_destroy(struct node_st **root)
+{
+	if (*root == NULL)
+		return;
+	tree_destroy(&(*root)->left);
+	tree_destroy(&(*root)->right);
+	printf("%d 将被销毁\n", (*root)->data.id);
+	free(*root);
+	*root = NULL;
+}
+
+// 画树
+void tree_show(const struct node_st *root, int level)
+{
+	if (root == NULL)
+		return ;
+	tree_show(root->right, level+1);
+	for (int i = 0; i < level; i++) {
+		printf("    ");
+	}
+	printf("%d\n", root->data.id);
+	tree_show(root->left, level+1);
+}
+
 int main(int argc, char *argv[])
 {
 	struct node_st *tree = NULL;
@@ -57,7 +82,11 @@ int main(int argc, char *argv[])
 		tree_insert(&tree, &dt);
 	}
 
+	tree_show(tree, 0);
+
 	tree_mid_traval(tree);
+
+	tree_destroy(&tree);
 
 	return 0;
 }
