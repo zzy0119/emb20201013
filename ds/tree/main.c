@@ -69,6 +69,58 @@ void tree_show(const struct node_st *root, int level)
 	tree_show(root->left, level+1);
 }
 
+static struct node_st **__find(struct node_st **root, int id)
+{
+	if (root == NULL)	
+		return NULL;
+	if ((*root)->data.id == id)
+		return root;
+	if ((*root)->data.id < id) {
+		__find(&(*root)->right, id);
+	} else {
+		__find(&(*root)->left, id);
+	}
+}
+
+static struct node_st *maxNode(struct node_st *root)
+{
+	if (root->right == NULL)
+		return root;
+	maxNode(root->right);
+}
+
+static void __delete(struct node_st **root)
+{
+	struct node_st *l, *r, *cur;
+
+	l = (*root)->left;
+	r = (*root)->right;
+	cur = *root;
+
+	if (l != NULL) {
+		*root = l;
+		maxNode(l)->right = r;
+	} else {
+		*root = r;
+	}
+	cur->left = cur->right = NULL;
+	free(cur);
+}
+
+// 删
+int tree_delete(struct node_st **root, int id)
+{
+	struct node_st **f;	
+
+	f = __find(root, id);
+	if (NULL == f)
+		return -1;
+
+	__delete(f);
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	struct node_st *tree = NULL;
@@ -84,7 +136,12 @@ int main(int argc, char *argv[])
 
 	tree_show(tree, 0);
 
-	tree_mid_traval(tree);
+//	tree_mid_traval(tree);
+	
+	printf("***************delete*********************\n");
+
+	tree_delete(&tree, 6);
+	tree_show(tree, 0);
 
 	tree_destroy(&tree);
 
