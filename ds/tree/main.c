@@ -12,6 +12,7 @@ struct node_st {
 	struct node_st *right;
 };
 
+static struct node_st *tree = NULL;
 // 插入
 int tree_insert(struct node_st **root, const data_t *d)
 {
@@ -89,6 +90,13 @@ static struct node_st *maxNode(struct node_st *root)
 	maxNode(root->right);
 }
 
+static struct node_st *minNode(struct node_st *root)
+{
+	if (root->left == NULL)
+		return root;
+	minNode(root->left);
+}
+
 static void __delete(struct node_st **root)
 {
 	struct node_st *l, *r, *cur;
@@ -121,9 +129,66 @@ int tree_delete(struct node_st **root, int id)
 	return 0;
 }
 
+// 统计树中结点个数
+static int treenodes(const struct node_st *root)
+{
+	if (root == NULL)
+		return 0;
+	return treenodes(root->left) + treenodes(root->right)+1;
+}
+
+static void turn_left(struct node_st **root)
+{
+	struct node_st *cur, *r;
+
+	cur = *root;
+	r = cur->right;
+
+	*root = r;
+	cur->right = NULL;
+	minNode(r)->left = cur;
+
+	tree_show(tree, 0);
+	getchar();
+}
+
+static void turn_right(struct node_st **root)
+{
+	struct node_st *cur, *l;
+
+	cur = *root;
+	l = cur->left;
+
+	*root = l;
+	cur->left = NULL;
+	maxNode(l)->right = cur;
+
+	tree_show(tree, 0);
+	getchar();
+}
+
+void tree_balance(struct node_st **root) 
+{
+	int n;
+
+	if (*root == NULL)
+		return;
+
+	while (1) {
+		n = treenodes((*root)->left) - treenodes((*root)->right);
+		if (n > 1) {
+			turn_right(root);
+		} else if (n < -1) {
+			turn_left(root);
+		} else
+			break;
+	}
+	tree_balance(&(*root)->left);
+	tree_balance(&(*root)->right);
+}
+
 int main(int argc, char *argv[])
 {
-	struct node_st *tree = NULL;
 	data_t dt;
 
 	if (argc < 2)
@@ -137,10 +202,14 @@ int main(int argc, char *argv[])
 	tree_show(tree, 0);
 
 //	tree_mid_traval(tree);
+#if 0
 	
 	printf("***************delete*********************\n");
 
 	tree_delete(&tree, 6);
+	tree_show(tree, 0);
+#endif
+	tree_balance(&tree);
 	tree_show(tree, 0);
 
 	tree_destroy(&tree);
