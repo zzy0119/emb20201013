@@ -1,20 +1,20 @@
 #include <stdio.h>
-#include <unistd.h>
+
+#define BUFSIZE	10
 
 static int cpfile(FILE *rfp, FILE *wfp)
 {
-	int ch;
+	char buf[BUFSIZE] = {};
+	int cnt;
 
 	while (1) {
-		ch = fgetc(rfp);	
-		if (ch == EOF) {
-			if (ferror(rfp))
-				return -1;
-			break;
+		cnt = fread(buf, 1, BUFSIZE, rfp);
+		if (cnt == 0) {
+			if (feof(rfp))
+				break;
+			return -1;
 		}
-		fputc(ch, wfp);	
-		sleep(1);
-		fflush(NULL);
+		fwrite(buf, 1, cnt, wfp);
 	}
 
 	return 0;
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
 	fp = fopen(argv[1], "r");
 	if (NULL == fp) {
-		fprintf(stderr, "fopen() failed\n");
+		printf("fopen() failed\n");
 		return 1;
 	}
 
