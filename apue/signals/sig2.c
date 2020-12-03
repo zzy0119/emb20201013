@@ -28,7 +28,7 @@ int main(void)
 	}
 	write(1, "hello", 5);
 	sleep(1);
-	kill(0, SIGUSR1);
+	kill(pid, SIGUSR1);
 	wait(NULL);
 
 	exit(0);
