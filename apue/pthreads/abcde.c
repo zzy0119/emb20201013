@@ -8,6 +8,7 @@
 
 static int curid = 0;
 static pthread_mutex_t mut;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 void *thrfun(void *s);
 int main(void)
@@ -29,11 +30,10 @@ int main(void)
 	for (int i = 0; i < THRNR; i = (i+1) % THRNR) {
 		pthread_mutex_lock(&mut);
 		while (curid != -1) {
-			pthread_mutex_unlock(&mut);
-			sched_yield();
-			pthread_mutex_lock(&mut);
+			pthread_cond_wait(&cond, &mut);
 		}
 		curid = i;
+		pthread_cond_broadcast(&cond);
 		pthread_mutex_unlock(&mut);
 	}
 
@@ -47,19 +47,16 @@ void *thrfun(void *s)
 
 	while (1) {
 		pthread_mutex_lock(&mut);
-		if (curid == -1) {
-			pthread_mutex_unlock(&mut);
-			sched_yield();
-			continue;
+		while (curid == -1) {
+			pthread_cond_wait(&cond, &mut);
 		}
 
-		if (curid != myid) {
-			pthread_mutex_unlock(&mut);
-			sched_yield();
-			continue;
+		while (curid != myid) {
+			pthread_cond_wait(&cond, &mut);
 		}
 		putchar('a'+myid);
 		curid = -1;
+		pthread_cond_broadcast(&cond);
 		pthread_mutex_unlock(&mut);
 	}
 
