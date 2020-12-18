@@ -1,5 +1,13 @@
 #include <stdio.h>
+#include <sys/mman.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
 
 #include "proto.h"
 
@@ -20,6 +28,8 @@ typedef struct proc_st {
 }pool_t;
 
 
+static int del_child_process(pool_t *pool);
+int add_child_process(int sd, pool_t *pool);
 static void sighandler(int s)
 {
 	;
@@ -53,7 +63,8 @@ int main(void)
 	pool_t *pool;	
 	int sd;
 	struct sigaction act, oldact;
-	sigset_t set;
+	sigset_t set, oldset;
+	int freecnt, busycnt;
 
 	pool = mmap(NULL, sizeof(pool_t)*MAX_PROC_POOL, \
 			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS,\
@@ -74,6 +85,10 @@ int main(void)
 	if (sd == -1) {
 		goto ERROR;
 	}
+
+	// reuse addr
+	int val = 1;
+	setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
 	// 注册信号的行为
 	act.sa_handler = sighandler;
@@ -100,18 +115,25 @@ int main(void)
 		freecnt = 0;
 		busycnt = 0;
 		for (int i = 0; i < MAX_PROC_POOL; i++) {
-			if (pool[i].state == STATE_BLANK && pool[i].pid == -1)
+			if (pool[i].state == STATE_BLANK && pool[i].pid == -1){
+				putchar('-');
 				continue;
-			if (pool[i].state == STATE_FREE)
+			}
+			if (pool[i].state == STATE_FREE) {
+				putchar('X');
 				freecnt ++;
-			else if (pool[i].state == STATE_BUSY)
+			}
+			else if (pool[i].state == STATE_BUSY) {
+				putchar('O');
 				busycnt ++;
+			}
 		}	
+		printf("\n");
 		if (freecnt < MIN_FREE_PROCNR) {
-			add_child_process();
+			add_child_process(sd, pool);
 		}
 		if (freecnt > MAX_FREE_PROCNR) {
-			del_child_process();
+			del_child_process(pool);
 		}
 	
 	}
@@ -121,4 +143,82 @@ ERROR:
 	munmap(pool, sizeof(pool_t) * MAX_PROC_POOL);
 	exit(1);
 }
+
+static int get_free_pos(const pool_t *pool)
+{
+	for (int i = 0; i < MAX_PROC_POOL; i++)
+		if (pool[i].pid == -1 && pool[i].state == STATE_BLANK)
+			return i;
+
+	return -1;
+}
+
+// 子进程工作
+static int child_job(int sd, pool_t *pool, int pos)
+{
+	struct sockaddr_in client_addr;
+	socklen_t client_addrlen;
+	int newsd;
+
+	client_addrlen = sizeof(client_addr);
+	while (1) {
+		pool[pos].state = STATE_FREE;
+		kill(getppid(), NOTIFYSIG);
+		newsd = accept(sd, (void *)&client_addr, &client_addrlen);
+		if (newsd == -1) {
+			if (errno == EINTR)
+				continue;
+			perror("accept()");
+			return -1;
+		}
+		pool[pos].state = STATE_BUSY;	
+		kill(getppid(), NOTIFYSIG);
+
+		sleep(3);
+		write(newsd, "hello", 5);
+		close(newsd);
+	}
+}
+
+// 添加任务进程
+int add_child_process(int sd, pool_t *pool)
+{
+	int pos = 0;
+	pid_t pid;
+
+	pos = get_free_pos(pool);
+	if (pos == -1) {
+		return -1;
+	}
+
+	pid = fork();
+	if (pid == -1) {
+		return -1;
+	}
+	if (pid == 0) {
+		// 子进程
+		child_job(sd, pool, pos);
+		exit(0);
+	}
+	pool[pos].pid = pid;
+	pool[pos].state = STATE_FREE;
+
+	return 0;
+}
+
+static int del_child_process(pool_t *pool)
+{
+	for (int i = 0; i < MAX_PROC_POOL; i++) {
+		if (pool[i].pid > 0 && pool[i].state == STATE_FREE) {
+			kill(pool[i].pid, SIGTERM);	
+			pool[i].pid = -1;
+			pool[i].state = STATE_BLANK;
+			return 0;
+		}
+	}
+
+	return -1;
+}
+
+
 
