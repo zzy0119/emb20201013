@@ -1,6 +1,8 @@
 #ifndef __MEDIALIB_H
 #define __MEDIALIB_H
 
+#include <stdint.h>
+
 #define MEDIAPATH	"./medias"
 
 typedef struct chnlist_st {

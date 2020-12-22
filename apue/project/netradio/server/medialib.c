@@ -26,7 +26,7 @@ static struct context_st *chn_contexts[CHNNR+1];
 // "./medias/channel1"
 struct context_st *get_chn_context(const char *path)
 {
-	static int id = 1;
+	static int8_t id = 1;
 	struct context_st *c;
 	char buf[BUFSIZE] = {};
 	FILE *fp;
@@ -90,7 +90,6 @@ int medialib_getchnlist(medlib_chnlist_t **mlib, int *n)
 		chn_contexts[ret->id] = ret;
 		(*mlib)[i].chnid = ret->id;
 		(*mlib)[i].descr = ret->descr;
-		printf("%d %s\n", (*mlib)[i].chnid, (*mlib)[i].descr);
 	}
 	*n = i;
 
