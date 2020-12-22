@@ -3,7 +3,7 @@
 
 #include "medialib.h"
 
-int thr_chnlist_create(medlib_chnlist_t *mlib, int n);
+int thr_chnlist_create(int sd, medlib_chnlist_t *mlib, int n);
 
 #endif
 
