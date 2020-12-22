@@ -10,10 +10,15 @@ int main(void)
 	medlib_chnlist_t *ml = NULL;
 	int n = 0;
 
-	socket_init();
+	// socket_init();
 
 	medialib_getchnlist(&ml, &n);
 
+	for (int i = 0; i < n; i++) {
+		printf("%d %s\n", ml[i].chnid, ml[i].descr);
+	}
+
+#if 0
 	thr_chnlist_create(ml, n);
 
 	for (int i = 0; i < n; i++)	{
@@ -22,6 +27,7 @@ int main(void)
 
 	while (1)
 		pause();
+#endif
 
 	exit(0);
 }
