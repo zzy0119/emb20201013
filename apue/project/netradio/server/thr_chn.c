@@ -11,7 +11,7 @@
 #include "../include/proto.h"
 #include "medialib.h"
 
-static int sd;
+static int sd_g;
 
 static void *thr_chn(void *s)
 {
@@ -32,7 +32,10 @@ static void *thr_chn(void *s)
 		ret = medialib_readchn(snd->chnid, snd->data, MAXMSG-1);
 		if (ret == -1)
 			break;
-		sendto(sd, snd, ret+1, 0, (void *)&raddr, sizeof(raddr));
+		if (sendto(sd_g, snd, ret+1, 0, (void *)&raddr, sizeof(raddr)) == -1) {
+			perror("sendto()");
+			pthread_exit(NULL);
+		}
 		sleep(1);
 	}
 
@@ -44,7 +47,7 @@ int thr_chn_create(int sd, int8_t chnid)
 	pthread_t tid;
 	int err;
 
-	sd = sd;
+	sd_g = sd;
 
 	err = pthread_create(&tid, NULL, thr_chn, (void *)chnid);
 	if (err) {
