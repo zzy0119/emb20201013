@@ -29,11 +29,9 @@ int main(void)
 
 	thr_chnlist_create(sd, ml, n);
 
-#if 0
 	for (int i = 0; i < n; i++)	{
-		thr_chn_create(ml[i].chnid);
+		thr_chn_create(sd, ml[i].chnid);
 	}
-#endif
 
 	while (1)
 		pause();

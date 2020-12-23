@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -36,6 +37,8 @@ struct context_st *get_chn_context(const char *path)
 		return NULL;
 	c->id = id++;
 
+	c->curindex = 0;
+
 	strncpy(buf, path, BUFSIZE);
 	strncat(buf, "/descr.txt", BUFSIZE);
 	fp = fopen(buf, "r");
@@ -60,7 +63,10 @@ struct context_st *get_chn_context(const char *path)
 		}
 		c->pos = 0;
 	} else {
-		printf("无效频道\n");
+		// printf("无效频道\n");
+		free(c);
+		id--;
+		return NULL;
 	}
 
 	return c;
@@ -87,13 +93,53 @@ int medialib_getchnlist(medlib_chnlist_t **mlib, int *n)
 
 	for (i = 0; i < res.gl_pathc; i++) {
 		ret = get_chn_context((res.gl_pathv)[i]);
+		if (ret == NULL)
+			continue;
 		chn_contexts[ret->id] = ret;
 		(*mlib)[i].chnid = ret->id;
 		(*mlib)[i].descr = ret->descr;
+		printf("chn fd:%d\n", chn_contexts[ret->id]->fd);
 	}
 	*n = i;
 
 	return 0;
+}
+
+// 打开下一个文件
+static int open_next(int8_t chnid)
+{
+	chn_contexts[chnid]->curindex = (chn_contexts[chnid]->curindex+1) % chn_contexts[chnid]->mp3path.gl_pathc;
+
+	close(chn_contexts[chnid]->fd);
+	chn_contexts[chnid]->fd = open((chn_contexts[chnid]->mp3path.gl_pathv)[chn_contexts[chnid]->curindex], O_RDONLY);
+	if (-1 == chn_contexts[chnid]->fd)
+		return -1;
+	return 0;
+}
+
+
+ssize_t medialib_readchn(int8_t chnid, void *buf, size_t size)
+{
+	int cnt;
+	while (1) {
+		cnt = pread(chn_contexts[chnid]->fd, buf, size, chn_contexts[chnid]->pos);
+		if (cnt == -1) {
+			perror("pread()");
+			return -1;
+		}
+		if (cnt == 0) {
+			// 当前文件读完了，读下一个文件
+			open_next(chnid);	
+			chn_contexts[chnid]->pos = 0;
+			printf("%d\n", chn_contexts[chnid]->fd);
+		} else {
+			// 读到了
+			chn_contexts[chnid]->pos += cnt;
+			break;
+		}
+	}
+
+	return cnt;
 }
 
 
