@@ -131,7 +131,6 @@ ssize_t medialib_readchn(int8_t chnid, void *buf, size_t size)
 			// 当前文件读完了，读下一个文件
 			open_next(chnid);	
 			chn_contexts[chnid]->pos = 0;
-			printf("%d\n", chn_contexts[chnid]->fd);
 		} else {
 			// 读到了
 			chn_contexts[chnid]->pos += cnt;
