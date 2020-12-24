@@ -36,7 +36,7 @@ static void *thr_chn(void *s)
 			perror("sendto()");
 			pthread_exit(NULL);
 		}
-		sleep(1);
+		usleep(1000);
 	}
 
 	pthread_exit(NULL);
