@@ -1,0 +1,41 @@
+SQLITE_API int SQLITE_STDCALL sqlite3_open(
+		const char *filename,   /* Database filename (UTF-8) */
+		sqlite3 **ppDb          /* OUT: SQLite db handle */
+		);
+
+SQLITE_API int SQLITE_STDCALL sqlite3_exec(
+		sqlite3*,                                  /* An open database */
+		const char *sql,                           /* SQL to be evaluated */
+		int (*callback)(void*,int,char**,char**),  /* Callback function */
+		void *,                                    /* 1st argument to callback */
+		char **errmsg                              /* Error msg written here */
+		);
+
+// const char *----->sqlite3_stmt
+SQLITE_API int SQLITE_STDCALL sqlite3_prepare_v2(
+		sqlite3 *db,            /* Database handle */
+		const char *zSql,       /* SQL statement, UTF-8 encoded */
+		int nByte,              /* Maximum length of zSql in bytes. */
+		sqlite3_stmt **ppStmt,  /* OUT: Statement handle */
+		const char **pzTail     /* OUT: Pointer to unused portion of zSql */
+		);
+
+SQLITE_API int SQLITE_STDCALL sqlite3_finalize(sqlite3_stmt *pStmt);
+
+SQLITE_API int SQLITE_STDCALL sqlite3_step(sqlite3_stmt*);
+
+// sqlite3_stmt结构中的变量绑定值
+SQLITE_API int SQLITE_STDCALL sqlite3_bind_text(sqlite3_stmt*,int,const char*,int,v
+		oid(*)(void*));
+SQLITE_API int SQLITE_STDCALL sqlite3_bind_blob(sqlite3_stmt*, int, const void*, in
+		t n, void(*)(void*));
+
+SQLITE_API const void *SQLITE_STDCALL sqlite3_column_blob(sqlite3_stmt*, int iCol);
+
+SQLITE_API const unsigned char *SQLITE_STDCALL sqlite3_column_text(sqlite3_stmt*, int iCol);
+
+QLITE_API int SQLITE_STDCALL sqlite3_close(sqlite3*);
+
+
+
+
