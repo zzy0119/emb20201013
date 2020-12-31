@@ -9,7 +9,10 @@
 
 #include "proto.h"
 
+#define BUFSIZE	1024
+
 static int socket_init(int *sd);
+static int isRgsOk(struct rgs_st rcv);
 int main(void)
 {
 	int sd;
@@ -19,6 +22,8 @@ int main(void)
 	struct rgs_st rcvbuf;
 	struct sockaddr_in client_addr;
 	socklen_t client_addr_len;
+	pid_t pid;
+	int cnt;
 
 	socket_init(&sd);
 	
@@ -51,8 +56,14 @@ int main(void)
 			perror("recvfrom()");
 			goto OPEN_ERROR;
 		}
+		printf("recv data from ip:%s, port:%d\n", \
+				inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 		
 		pid = fork();	
+		if (pid == -1) {
+			perror("fork()");
+			goto OPEN_ERROR;
+		}
 		if (pid == 0) {
 			// 判断此帐号是否可以注册
 			ret = isRgsOk(rcvbuf);
@@ -60,13 +71,14 @@ int main(void)
 				fprintf(stderr, "isRgsOk() failed");
 				exit(1);
 			}
+			printf("ret:%d\n", ret);
 			if (ret == RGS_OK) {
 				rcvbuf.rgs_stat = RGS_OK;
 			} else if (ret == RGS_ALREADY) {
 				rcvbuf.rgs_stat = RGS_ALREADY;
 			}
-			sendto(sd, &rcvbuf, sizeof(rcvbuf), (void *)&client_addr, \
-					client_addr_len);
+			sendto(sd, &rcvbuf, sizeof(rcvbuf), 0, \
+					(void *)&client_addr, client_addr_len);
 		}
 
 	}
@@ -104,3 +116,54 @@ ERROR:
 	close(*sd);
 	return -1;
 }
+
+int isRgsOk(struct rgs_st rcv)
+{
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	int ret;
+	char buf[BUFSIZE] = {};
+
+	ret = sqlite3_open("/home/emb1013/code20201013/emb20201013/qt/nettalk.db", &db);
+	if (ret != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_open() failed\n");
+		return -1;
+	}
+
+	// 查询rcv->count帐号是否注册
+	ret = sqlite3_prepare_v2(db, "select * from rgsTable \
+			where count = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_prepare_v2() failed\n");
+		goto ERROR1;
+	}
+	if (sqlite3_bind_text(stmt, 1, rcv.count, -1, NULL) != SQLITE_OK) {
+		fprintf(stderr, "sqlite3_bind_text() failed\n");
+		goto ERROR2;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		// 注册过
+		ret = RGS_ALREADY;
+	} else if (ret == SQLITE_DONE) {
+		// 表中没有所查找的帐号
+		snprintf(buf, BUFSIZE, "insert into rgsTable(count, password) values('%s', '%s')", rcv.count, rcv.password);
+
+		sqlite3_exec(db, buf, NULL, NULL, NULL);
+		ret = RGS_OK;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return ret;
+
+ERROR2:
+	sqlite3_finalize(stmt);
+ERROR1:
+	sqlite3_close(db);
+	return -1;
+}
+
+
+
